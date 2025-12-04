@@ -1,0 +1,36 @@
+# Visual Studio 2022
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Compilation
+bin/
+obj/
+*.dll
+*.pdb
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Other
+*.log
+.DS_Store
+thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Environment
+.env
+
+# Terminals
+terminals/

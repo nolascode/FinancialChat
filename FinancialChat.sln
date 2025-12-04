@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F43DCF87-77CA-4B1A-816E-1D06B487CCC7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChat.Core", "src\FinancialChat.Core\FinancialChat.Core.csproj", "{3875D55C-6E10-42CE-8EF9-CE63DC06B1B0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChat.Infrastructure", "src\FinancialChat.Infrastructure\FinancialChat.Infrastructure.csproj", "{AED437BF-7256-44A1-A6A5-CBA84E05A2FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChat.API", "src\FinancialChat.API\FinancialChat.API.csproj", "{92E9C093-209D-409C-A8E0-1D372DA0B7EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChat.Bot", "src\FinancialChat.Bot\FinancialChat.Bot.csproj", "{9EAE8AC8-A915-4274-959E-4455F28BC490}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialChat.Tests", "src\FinancialChat.Tests\FinancialChat.Tests.csproj", "{D30E3AC1-08FC-48D1-8A24-FAB7897EBCDA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3875D55C-6E10-42CE-8EF9-CE63DC06B1B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3875D55C-6E10-42CE-8EF9-CE63DC06B1B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3875D55C-6E10-42CE-8EF9-CE63DC06B1B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3875D55C-6E10-42CE-8EF9-CE63DC06B1B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AED437BF-7256-44A1-A6A5-CBA84E05A2FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AED437BF-7256-44A1-A6A5-CBA84E05A2FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AED437BF-7256-44A1-A6A5-CBA84E05A2FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AED437BF-7256-44A1-A6A5-CBA84E05A2FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92E9C093-209D-409C-A8E0-1D372DA0B7EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92E9C093-209D-409C-A8E0-1D372DA0B7EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92E9C093-209D-409C-A8E0-1D372DA0B7EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92E9C093-209D-409C-A8E0-1D372DA0B7EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EAE8AC8-A915-4274-959E-4455F28BC490}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EAE8AC8-A915-4274-959E-4455F28BC490}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EAE8AC8-A915-4274-959E-4455F28BC490}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EAE8AC8-A915-4274-959E-4455F28BC490}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D30E3AC1-08FC-48D1-8A24-FAB7897EBCDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D30E3AC1-08FC-48D1-8A24-FAB7897EBCDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D30E3AC1-08FC-48D1-8A24-FAB7897EBCDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D30E3AC1-08FC-48D1-8A24-FAB7897EBCDA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3875D55C-6E10-42CE-8EF9-CE63DC06B1B0} = {F43DCF87-77CA-4B1A-816E-1D06B487CCC7}
+		{AED437BF-7256-44A1-A6A5-CBA84E05A2FD} = {F43DCF87-77CA-4B1A-816E-1D06B487CCC7}
+		{92E9C093-209D-409C-A8E0-1D372DA0B7EF} = {F43DCF87-77CA-4B1A-816E-1D06B487CCC7}
+		{9EAE8AC8-A915-4274-959E-4455F28BC490} = {F43DCF87-77CA-4B1A-816E-1D06B487CCC7}
+		{D30E3AC1-08FC-48D1-8A24-FAB7897EBCDA} = {F43DCF87-77CA-4B1A-816E-1D06B487CCC7}
+	EndGlobalSection
+EndGlobal
