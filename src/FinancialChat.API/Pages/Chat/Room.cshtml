@@ -1,0 +1,303 @@
+@page "/chat/room"
+@{
+    ViewData["Title"] = "Chat Room";
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/chat">Chat Rooms</a></li>
+                <li class="breadcrumb-item active" id="roomTitle">Loading...</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span id="roomName">Chat Room</span>
+        <div>
+            <span id="messageCount" class="badge bg-info me-2" style="display: none;"></span>
+            <span id="connectionStatus" class="badge bg-secondary">Connecting...</span>
+        </div>
+    </div>
+    <div class="card-body" style="height: 500px; overflow-y: auto;" id="messagesContainer">
+        <div id="loadMoreContainer" class="text-center mb-3" style="display: none;">
+            <button id="loadMoreBtn" class="btn btn-outline-secondary btn-sm">Load older messages</button>
+        </div>
+        <div id="messagesContent">
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading messages...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <form id="messageForm" class="d-flex gap-2">
+            <input type="text" class="form-control" id="messageInput"
+                placeholder="Type a message or /stock=AAPL.US for stock quotes" autocomplete="off" maxlength="500">
+            <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+        <small class="text-muted mt-1 d-block">
+            Use <code>/stock=CODE</code> or <code>/stock=CODE1,CODE2,CODE3</code> for multiple quotes (max 5)
+        </small>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        const userName = localStorage.getItem('userName');
+
+        if (!token) {
+            window.location.href = '/auth/login';
+        }
+
+        function handleUnauthorized(response) {
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '/auth/login';
+                return true;
+            }
+            return false;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomId = urlParams.get('id');
+
+        if (!roomId) {
+            window.location.href = '/chat';
+        }
+
+        let connection = null;
+
+        // Pagination state
+        let currentPage = 1;
+        let totalPages = 1;
+        let hasMoreMessages = false;
+        const pageSize = 50;
+
+        // Load room info and messages
+        async function loadRoomData() {
+            try {
+                const roomResponse = await fetch(`/api/chatrooms/${roomId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (handleUnauthorized(roomResponse)) return;
+
+                const roomResult = await roomResponse.json();
+
+                if (roomResult.success) {
+                    document.getElementById('roomName').textContent = roomResult.data.name;
+                    document.getElementById('roomTitle').textContent = roomResult.data.name;
+                }
+
+                // Load first page of messages
+                await loadMessages(1, true);
+            } catch (error) {
+                console.error('Error loading room data:', error);
+            }
+        }
+
+        async function loadMessages(page, replace = false) {
+            try {
+                const messagesResponse = await fetch(`/api/chatrooms/${roomId}/messages?page=${page}&pageSize=${pageSize}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (handleUnauthorized(messagesResponse)) return;
+
+                const messagesResult = await messagesResponse.json();
+
+                if (messagesResult.success) {
+                    const pagedData = messagesResult.data;
+                    currentPage = pagedData.page;
+                    totalPages = pagedData.totalPages;
+                    hasMoreMessages = pagedData.hasNextPage;
+
+                    // Update message count badge
+                    const countBadge = document.getElementById('messageCount');
+                    countBadge.textContent = `${pagedData.totalCount} messages`;
+                    countBadge.style.display = 'inline';
+
+                    if (replace) {
+                        renderMessages(pagedData.items);
+                    } else {
+                        prependMessages(pagedData.items);
+                    }
+
+                    updateLoadMoreButton();
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        function updateLoadMoreButton() {
+            const container = document.getElementById('loadMoreContainer');
+            container.style.display = hasMoreMessages ? 'block' : 'none';
+        }
+
+        async function loadOlderMessages() {
+            if (!hasMoreMessages) return;
+
+            const btn = document.getElementById('loadMoreBtn');
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+
+            await loadMessages(currentPage + 1, false);
+
+            btn.disabled = false;
+            btn.textContent = 'Load older messages';
+        }
+
+        function renderMessages(messages) {
+            const container = document.getElementById('messagesContent');
+            container.innerHTML = messages.map(msg => createMessageHtml(msg)).join('');
+            scrollToBottom();
+        }
+
+        function prependMessages(messages) {
+            const container = document.getElementById('messagesContent');
+            const oldScrollHeight = document.getElementById('messagesContainer').scrollHeight;
+
+            // Prepend older messages at the top
+            const html = messages.map(msg => createMessageHtml(msg)).join('');
+            container.insertAdjacentHTML('afterbegin', html);
+
+            // Maintain scroll position
+            const messagesContainer = document.getElementById('messagesContainer');
+            const newScrollHeight = messagesContainer.scrollHeight;
+            messagesContainer.scrollTop = newScrollHeight - oldScrollHeight;
+        }
+
+        function createMessageHtml(msg) {
+            const isOwn = msg.userName === userName;
+            const isBot = msg.isBot;
+            const time = new Date(msg.timestamp).toLocaleTimeString();
+
+            let messageClass = 'bg-light';
+            if (isOwn) messageClass = 'bg-primary text-white';
+            if (isBot) messageClass = 'bg-success text-white';
+
+            return `
+                                                <div class="mb-2 ${isOwn ? 'text-end' : ''}">
+                                                    <div class="d-inline-block p-2 rounded ${messageClass}" style="max-width: 70%;">
+                                                        <div class="fw-bold small">${isBot ? '🤖 StockBot' : escapeHtml(msg.userName)}</div>
+                                                        <div>${escapeHtml(msg.content)}</div>
+                                                        <div class="small ${isOwn || isBot ? 'text-white-50' : 'text-muted'}">${time}</div>
+                                                    </div>
+                                                </div>
+                                            `;
+        }
+
+        function addMessage(msg) {
+            const container = document.getElementById('messagesContent');
+            container.insertAdjacentHTML('beforeend', createMessageHtml(msg));
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // SignalR connection
+        async function startConnection() {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl('/hubs/chat?access_token=' + token)
+                .withAutomaticReconnect()
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            connection.on('ReceiveMessage', (message) => {
+                addMessage(message);
+            });
+
+            connection.on('ReceiveStockQuote', (quote) => {
+                console.log('Stock quote received:', quote);
+            });
+
+            connection.on('UserJoined', (user) => {
+                console.log(user + ' joined the room');
+            });
+
+            connection.on('UserLeft', (user) => {
+                console.log(user + ' left the room');
+            });
+
+            connection.on('Error', (error) => {
+                alert('Error: ' + error);
+            });
+
+            connection.onreconnecting(() => {
+                document.getElementById('connectionStatus').className = 'badge bg-warning';
+                document.getElementById('connectionStatus').textContent = 'Reconnecting...';
+            });
+
+            connection.onreconnected(() => {
+                document.getElementById('connectionStatus').className = 'badge bg-success';
+                document.getElementById('connectionStatus').textContent = 'Connected';
+                connection.invoke('JoinRoom', roomId);
+            });
+
+            connection.onclose(() => {
+                document.getElementById('connectionStatus').className = 'badge bg-danger';
+                document.getElementById('connectionStatus').textContent = 'Disconnected';
+            });
+
+            try {
+                await connection.start();
+                document.getElementById('connectionStatus').className = 'badge bg-success';
+                document.getElementById('connectionStatus').textContent = 'Connected';
+                await connection.invoke('JoinRoom', roomId);
+            } catch (err) {
+                console.error('SignalR Connection Error:', err);
+                document.getElementById('connectionStatus').className = 'badge bg-danger';
+                document.getElementById('connectionStatus').textContent = 'Connection Failed';
+            }
+        }
+
+        // Send message
+        document.getElementById('messageForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (message && connection) {
+                try {
+                    await connection.invoke('SendMessage', roomId, message);
+                    input.value = '';
+                } catch (err) {
+                    console.error('Error sending message:', err);
+                    alert('Failed to send message. Please try again.');
+                }
+            }
+        });
+
+        // Initialize
+        loadRoomData();
+        startConnection();
+
+        // Load more button handler
+        document.getElementById('loadMoreBtn').addEventListener('click', loadOlderMessages);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (connection) {
+                connection.invoke('LeaveRoom', roomId);
+            }
+        });
+    </script>
+}

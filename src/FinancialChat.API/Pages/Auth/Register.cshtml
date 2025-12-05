@@ -1,0 +1,85 @@
+@page
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Register</h4>
+            </div>
+            <div class="card-body">
+                <div id="errorAlert" class="alert alert-danger" style="display:none;"></div>
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="userName" required minlength="3">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" required minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <span>Already have an account? </span>
+                    <a href="/auth/login">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const errorAlert = document.getElementById('errorAlert');
+        errorAlert.style.display = 'none';
+
+        const userName = document.getElementById('userName').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+            errorAlert.textContent = 'Passwords do not match';
+            errorAlert.style.display = 'block';
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userName, email, password, confirmPassword })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userName', data.userName);
+                localStorage.setItem('userId', data.userId);
+                window.location.href = '/chat';
+            } else {
+                errorAlert.textContent = data.errors ? data.errors.join(', ') : data.message || 'Registration failed';
+                errorAlert.style.display = 'block';
+            }
+        } catch (error) {
+            errorAlert.textContent = 'An error occurred. Please try again.';
+            errorAlert.style.display = 'block';
+        }
+    });
+</script>
+}
