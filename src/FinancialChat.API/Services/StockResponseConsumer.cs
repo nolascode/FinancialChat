@@ -38,21 +38,38 @@ public class StockResponseConsumer : BackgroundService
     {
         _logger.LogInformation("Stock Response Consumer starting...");
 
-        await Task.Delay(5000, stoppingToken); // Wait for RabbitMQ to be ready
+        var retryCount = 0;
+        const int maxRetries = 10;
 
-        try
+        while (!stoppingToken.IsCancellationRequested && retryCount < maxRetries)
         {
-            InitializeRabbitMq();
-            StartConsuming();
-
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                await Task.Delay(1000, stoppingToken);
+                var delay = Math.Min(5000 * (int)Math.Pow(2, retryCount), 60000);
+                _logger.LogInformation("Waiting {Delay}ms before connecting to RabbitMQ (attempt {Attempt}/{Max})",
+                    delay, retryCount + 1, maxRetries);
+
+                await Task.Delay(delay, stoppingToken);
+
+                InitializeRabbitMq();
+                StartConsuming();
+
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    await Task.Delay(1000, stoppingToken);
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in Stock Response Consumer");
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                retryCount++;
+                _logger.LogWarning(ex, "Failed to connect to RabbitMQ (attempt {Attempt}/{Max})",
+                    retryCount, maxRetries);
+
+                if (retryCount >= maxRetries)
+                {
+                    _logger.LogError("Max retries reached. Stock Response Consumer stopping.");
+                }
+            }
         }
     }
 
