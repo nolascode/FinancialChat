@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: financialchat-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: FinancialChatDb
+      POSTGRES_USER: financialchat
+      POSTGRES_PASSWORD: financialchat123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financialchat -d FinancialChatDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - financialchat-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: financialchat-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - financialchat-network
+
+  api:
+    build:
+      context: .
+      dockerfile: src/FinancialChat.API/Dockerfile
+    container_name: financialchat-api
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Docker
+      - ASPNETCORE_URLS=http://+:5000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - financialchat-network
+
+  bot:
+    build:
+      context: .
+      dockerfile: src/FinancialChat.Bot/Dockerfile
+    container_name: financialchat-bot
+    environment:
+      - DOTNET_ENVIRONMENT=Docker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - financialchat-network
+
+networks:
+  financialchat-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
