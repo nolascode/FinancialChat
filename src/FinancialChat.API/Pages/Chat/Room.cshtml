@@ -186,14 +186,14 @@
             if (isBot) messageClass = 'bg-success text-white';
 
             return `
-                                                <div class="mb-2 ${isOwn ? 'text-end' : ''}">
-                                                    <div class="d-inline-block p-2 rounded ${messageClass}" style="max-width: 70%;">
-                                                        <div class="fw-bold small">${isBot ? '🤖 StockBot' : escapeHtml(msg.userName)}</div>
-                                                        <div>${escapeHtml(msg.content)}</div>
-                                                        <div class="small ${isOwn || isBot ? 'text-white-50' : 'text-muted'}">${time}</div>
+                                                    <div class="mb-2 ${isOwn ? 'text-end' : ''}">
+                                                        <div class="d-inline-block p-2 rounded ${messageClass}" style="max-width: 70%;">
+                                                            <div class="fw-bold small">${isBot ? '🤖 StockBot' : escapeHtml(msg.userName)}</div>
+                                                            <div>${escapeHtml(msg.content)}</div>
+                                                            <div class="small ${isOwn || isBot ? 'text-white-50' : 'text-muted'}">${time}</div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            `;
+                                                `;
         }
 
         function addMessage(msg) {
@@ -205,6 +205,17 @@
         function scrollToBottom() {
             const container = document.getElementById('messagesContainer');
             container.scrollTop = container.scrollHeight;
+        }
+
+        function incrementMessageCount() {
+            const countBadge = document.getElementById('messageCount');
+            if (countBadge && countBadge.style.display !== 'none') {
+                const currentText = countBadge.textContent;
+                const currentCount = parseInt(currentText.split(' ')[0]);
+                if (!isNaN(currentCount)) {
+                    countBadge.textContent = `${currentCount + 1} messages`;
+                }
+            }
         }
 
         function escapeHtml(text) {
@@ -223,6 +234,7 @@
 
             connection.on('ReceiveMessage', (message) => {
                 addMessage(message);
+                incrementMessageCount();
             });
 
             connection.on('ReceiveStockQuote', (quote) => {
