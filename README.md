@@ -2,6 +2,8 @@
 
 A powerful real-time chat application built with .NET 8, featuring decoupled stock quote services via RabbitMQ.
 
+**🌐 Live Demo:** [https://financial-chat.nolascode.net/](https://financial-chat.nolascode.net/)
+
 ![Financial Chat Application](images/Screenshot%202025-12-06%20091736.png)
 
 ## 🚀 Key Features
@@ -36,8 +38,9 @@ A powerful real-time chat application built with .NET 8, featuring decoupled sto
 
 ### Prerequisites
 *   Docker & Docker Compose
+*   .NET 8 SDK (optional, for local dev)
 
-### Installation
+### Option 1: Docker (Recommended)
 
 **Windows:**
 ```powershell
@@ -51,6 +54,35 @@ chmod +x install.sh
 ```
 
 The application will be available at `http://localhost:5000`.
+
+### Option 2: Local Development (using dev.sh)
+
+The project includes a helper script `dev.sh` to manage the development environment.
+
+**Make executable:**
+```bash
+chmod +x dev.sh
+```
+
+**Start infrastructure (DB + RabbitMQ):**
+```bash
+./dev.sh infra
+```
+
+**Run migrations:**
+```bash
+./dev.sh migrate
+```
+
+**Run API locally:**
+```bash
+./dev.sh run-api
+```
+
+**View all commands:**
+```bash
+./dev.sh help
+```
 
 ## 📚 Documentation
 
