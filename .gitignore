@@ -33,4 +33,4 @@ docker-compose.override.yml
 .env
 
 # Terminals
-terminals/
+terminals/build-and-push.sh
