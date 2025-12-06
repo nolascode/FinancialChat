@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: FinancialChatDb
       POSTGRES_USER: financialchat
-      POSTGRES_PASSWORD: "SuperSecurePassword123!"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     deploy:
@@ -25,7 +25,7 @@ services:
       - financialchat-internal
     environment:
       RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD}"
     deploy:
       resources:
         limits:
@@ -42,11 +42,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_HTTP_PORTS=8080
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=FinancialChatDb;Username=financialchat;Password=SuperSecurePassword123!
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=FinancialChatDb;Username=financialchat;Password=${POSTGRES_PASSWORD}
       - RabbitMq__HostName=rabbitmq
       - RabbitMq__UserName=guest
-      - RabbitMq__Password=guest
-      - Jwt__Key=ThisIsAVerySecureKeyForProductionEnvironment123!
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
+      - Jwt__Key=${JWT_SECRET_KEY}
       - Jwt__Issuer=financial-chat.nolascode.net
       - Jwt__Audience=FinancialChatUsers
     depends_on:
@@ -72,7 +72,7 @@ services:
       - DOTNET_ENVIRONMENT=Production
       - RabbitMq__HostName=rabbitmq
       - RabbitMq__UserName=guest
-      - RabbitMq__Password=guest
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
     depends_on:
       - rabbitmq
     deploy:
