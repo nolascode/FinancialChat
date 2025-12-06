@@ -1,29 +1,26 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # Base de datos
   postgres:
     image: postgres:15-alpine
-    container_name: financialchat-postgres
     networks:
       - financialchat-internal
     environment:
       POSTGRES_DB: FinancialChatDb
       POSTGRES_USER: financialchat
-      POSTGRES_PASSWORD: "SuperSecurePassword123!" # Cambiar en producción
+      POSTGRES_PASSWORD: "SuperSecurePassword123!"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 512M
-    restart: always
+      restart_policy:
+        condition: on-failure
 
-  # Message Broker
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: financialchat-rabbitmq
     networks:
       - financialchat-internal
     environment:
@@ -32,29 +29,25 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 512M
-    restart: always
+      restart_policy:
+        condition: on-failure
 
-  # API + Frontend (Razor Pages)
   api:
     image: nolascoacosta/financial-chat-api:latest
-    build:
-      context: .
-      dockerfile: src/FinancialChat.API/Dockerfile
-    container_name: financialchat-api
     networks:
       - financialchat-internal
-      - tprestoappnet # Red externa donde está Traefik
+      - nolascodenet
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=FinancialChatDb;Username=financialchat;Password=SuperSecurePassword123!
       - RabbitMq__HostName=rabbitmq
       - RabbitMq__UserName=guest
       - RabbitMq__Password=guest
-      # Configuración JWT segura (Cambiar Key en producción real)
       - Jwt__Key=ThisIsAVerySecureKeyForProductionEnvironment123!
-      - Jwt__Issuer=finantial-chat.nolascode.net
+      - Jwt__Issuer=financial-chat.nolascode.net
       - Jwt__Audience=FinancialChatUsers
     depends_on:
       - postgres
@@ -63,20 +56,16 @@ services:
       replicas: 1
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.financial-chat.rule=Host(`finantial-chat.nolascode.net`)"
-        - "traefik.http.routers.financial-chat.entrypoints=websecure"
-        - "traefik.http.routers.financial-chat.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.financial-chat.loadbalancer.server.port=8080" # El puerto interno de la imagen .NET por defecto suele ser 8080 en las últimas versiones
-        - "traefik.docker.network=tprestoappnet"
-    restart: always
+        - "traefik.http.routers.financialchat-api.rule=Host(`financial-chat.nolascode.net`)"
+        - "traefik.http.routers.financialchat-api.entrypoints=websecure"
+        - "traefik.http.routers.financialchat-api.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.financialchat-api.loadbalancer.server.port=8080"
+        - "traefik.docker.network=nolascodenet"
+      restart_policy:
+        condition: on-failure
 
-  # Worker Service (Bot)
   bot:
     image: nolascoacosta/financial-chat-bot:latest
-    build:
-      context: .
-      dockerfile: src/FinancialChat.Bot/Dockerfile
-    container_name: financialchat-bot
     networks:
       - financialchat-internal
     environment:
@@ -86,14 +75,15 @@ services:
       - RabbitMq__Password=guest
     depends_on:
       - rabbitmq
-    restart: always
+    deploy:
+      restart_policy:
+        condition: on-failure
 
 networks:
   financialchat-internal:
-    driver: bridge
-  tprestoappnet:
-    external: true # Usamos la red externa que mencionaste en tu ejemplo
+    driver: overlay
+  nolascodenet:
+    external: true
 
 volumes:
   postgres_data:
-
